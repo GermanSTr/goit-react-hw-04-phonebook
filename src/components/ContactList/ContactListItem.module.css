@@ -1,0 +1,12 @@
+.itemLi:not(:last-child) {
+  margin-bottom: 10px;
+}
+
+.contactsDelete {
+  margin-left: 10px;
+  border: none;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+}
