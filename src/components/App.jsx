@@ -1,74 +1,54 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { ContactList } from './ContactList/ContactList';
 import { ContactForm } from './ContactForm/ContactForm';
 import { Filter } from './Filter/Filter';
 
-export class App extends Component {
-  state = {
-    contacts: [],
-    filter: '',
-  };
+export const App = () => {
+  const [contacts, setContacts] = useState(
+    JSON.parse(localStorage.getItem('contacts')) ?? []
+  );
+  const [filter, setFilter] = useState('');
 
-  componentDidMount() {
-    const contacts = JSON.parse(localStorage.getItem('contacts'));
-    if (contacts) {
-      this.setState({ contacts });
-    }
-  }
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
-  componentDidUpdate(prevState, prevProps) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
-
-  handleAddName = formData => {
-    const hasDuplicates = this.state.contacts.some(
+  const handleAddName = formData => {
+    const hasDuplicates = contacts.some(
       profile => profile.name.toLowerCase() === formData.name.toLowerCase()
     );
     if (hasDuplicates) {
       alert(`${formData.name} is already in contacts`);
       return;
     }
-    this.setState(prevState => {
-      return {
-        contacts: [...prevState.contacts, { ...formData, id: uuidv4() }],
-      };
-    });
+    setContacts(prevState => [...prevState, { ...formData, id: uuidv4() }]);
   };
 
-  handleChangeFilter = evt => {
-    this.setState({ filter: evt.target.value });
+  const handleChangeFilter = evt => {
+    setFilter(evt.target.value);
   };
 
-  handleDeleteContacts = profileId => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== profileId),
-    }));
-  };
-
-  render() {
-    const filterProfiles = this.state.contacts.filter(profile =>
-      profile.name
-        .toLowerCase()
-        .includes(this.state.filter.trim().toLowerCase())
+  const handleDeleteContacts = profileId => {
+    setContacts(prevState =>
+      prevState.filter(contact => contact.id !== profileId)
     );
-    return (
-      <div>
-        <h1>Phonebook</h1>
-        <ContactForm handleAddName={this.handleAddName} />
+  };
 
-        <h2>Contacts</h2>
-        <Filter
-          handleChangeFilter={this.handleChangeFilter}
-          filter={this.state.filter}
-        />
-        <ContactList
-          contacts={filterProfiles}
-          handleDeleteContacts={this.handleDeleteContacts}
-        />
-      </div>
-    );
-  }
-}
+  const filterProfiles = contacts.filter(profile =>
+    profile.name.toLowerCase().includes(filter.trim().toLowerCase())
+  );
+  return (
+    <div>
+      <h1>Phonebook</h1>
+      <ContactForm handleAddName={handleAddName} />
+
+      <h2>Contacts</h2>
+      <Filter handleChangeFilter={handleChangeFilter} filter={filter} />
+      <ContactList
+        contacts={filterProfiles}
+        handleDeleteContacts={handleDeleteContacts}
+      />
+    </div>
+  );
+};
